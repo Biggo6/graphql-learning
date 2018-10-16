@@ -36,9 +36,13 @@ const typeDefs = `
         getAuthors: [Author]
         retrieveAuthor(id: ID!): Author
     }
+    type DeleteMessage {
+        message: String!
+    }
     type Mutation {
         createAuthor(name: String!, gender: String!): Author
         updateAuthor(id: ID!, name:String, gender:String, age:Int) : Author
+        deleteAuthor(id: ID!): DeleteMessage
     }
 `;
 
@@ -64,14 +68,17 @@ const resolvers = {
         },
         updateAuthor: (obj, { id, name, gender, age}) => {
             const author = authors.find(author => author.id === id);
+        
             if(author) {
-                const authorIndex = authors.indexOf(author);
-                if(name) author.info.name = name;
-                if(gender) author.info.gender = gender;
-                if(age) author.info.age = age;
-
-                authors[authorIndex] = {id, info: author}
-                return {id, info: author};
+                let newAuthors = authors.map(a => {
+                    if(a.id === id) {
+                        a.info.name = name;
+                        a.info.age  = age;
+                        a.info.gender = gender;
+                    }
+                    return a;
+                });
+                return newAuthors.find(au => au.id === id);
             }else {
                 throw new Error('Author ID not found')
             }
